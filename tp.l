@@ -19,17 +19,40 @@ typedef struct Lista
 } Lista;
 Lista *listaIdentificadores;
 void insertar_final(Lista *lista, NodoIdentificador *nodoNuevo);
+
+void insertar_ordenado(Lista *lista, NodoIdentificador *nodoNuevo) {
+    NodoIdentificador *paux = lista->cabeza;
+    NodoIdentificador *anterior = NULL;
+
+    // Buscamos la posición correcta para insertar
+    while (paux != NULL && strcmp(paux->valor, nodoNuevo->valor) < 0) {
+        anterior = paux;
+        paux = paux->siguiente;
+    }
+
+    if (anterior == NULL) {
+        // Insertar al principio de la lista
+        nodoNuevo->siguiente = lista->cabeza;
+        lista->cabeza = nodoNuevo;
+    } else {
+        // Insertar en medio o al final de la lista
+        nodoNuevo->siguiente = paux;
+        anterior->siguiente = nodoNuevo;
+    }
+
+    lista->tamanio++;
+}
 NodoIdentificador *buscar_nodo(Lista *lista, char* valorBuscado);
 
 void enlistar_identificador(char* identificador){
     NodoIdentificador *resultadoBusqueda = buscar_nodo(listaIdentificadores, identificador);
     if(resultadoBusqueda == NULL){
-            //Creamos uno nuevo
+            //No lo encontro, creamos uno nuevo
             NodoIdentificador *nodoNuevo = (NodoIdentificador *)malloc(sizeof(NodoIdentificador));
             nodoNuevo->valor = strdup(identificador);
             nodoNuevo->repeticiones = 1;
             nodoNuevo->siguiente = NULL;
-           insertar_final(listaIdentificadores, nodoNuevo);
+            insertar_ordenado(listaIdentificadores, nodoNuevo);
     }else{
         //Le sumamos una repeticion
         resultadoBusqueda->repeticiones = resultadoBusqueda->repeticiones+1;
