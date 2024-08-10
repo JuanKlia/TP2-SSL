@@ -32,19 +32,23 @@ IDENTIFICADOR [_a-zA-Z][_a-zA-Z0-9]*
 
 %%
 
-int main() {
+int main(int argc, char *argv[]) {
+      if (argc < 2) {
+        fprintf(stderr, "Uso: %s <archivo de entrada>\n", argv[0]);
+        exit(1);
+    }
 
+     FILE *archivo = fopen(argv[1], "r");
+    yyin = archivo;
+       
     listaIdentificadores = (Lista *)malloc(sizeof(Lista));
     listaIdentificadores->tamanio=0;
     listaIdentificadores->cabeza=NULL;
 
     
 
-    /*yylex();*/
-   insertar_principio(listaIdentificadores, "Hola");
-    insertar_principio(listaIdentificadores, "Chau");
-    insertar_principio(listaIdentificadores, "Casa");
-    
+    yylex();
+
      // Imprimir la lista
     NodoIdentificador *actual = listaIdentificadores->cabeza; 
     while (actual != NULL)
@@ -52,7 +56,7 @@ int main() {
         printf("Valor: %s\n", actual->valor); 
         actual = actual->siguiente;
     }
-
+    fclose(archivo);
     return 0;
 }
 
