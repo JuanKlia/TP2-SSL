@@ -7,6 +7,7 @@
 typedef struct NodoIdentificador
 {
     char* valor;
+    int repeticiones;
     struct NodoIdentificador *siguiente;
 } NodoIdentificador;
 
@@ -16,10 +17,26 @@ typedef struct Lista
     int tamanio;
     NodoIdentificador *cabeza; // Primer elemento
 } Lista;
-
-void insertar_principio(Lista *lista, char* valor);
-
 Lista *listaIdentificadores;
+void insertar_final(Lista *lista, NodoIdentificador *nodoNuevo);
+NodoIdentificador *buscar_nodo(Lista *lista, char* valorBuscado);
+
+void enlistar_identificador(char* identificador){
+    NodoIdentificador *resultadoBusqueda = buscar_nodo(listaIdentificadores, identificador);
+    if(resultadoBusqueda == NULL){
+            //Creamos uno nuevo
+            NodoIdentificador *nodoNuevo = (NodoIdentificador *)malloc(sizeof(NodoIdentificador));
+            nodoNuevo->valor = strdup(identificador);
+            nodoNuevo->repeticiones = 1;
+            nodoNuevo->siguiente = NULL;
+           insertar_final(listaIdentificadores, nodoNuevo);
+    }else{
+        //Le sumamos una repeticion
+        resultadoBusqueda->repeticiones = resultadoBusqueda->repeticiones+1;
+    }
+}
+
+
 %}
 
 %option noyywrap
@@ -28,7 +45,7 @@ IDENTIFICADOR [_a-zA-Z][_a-zA-Z0-9]*
 
 %%
 
-{IDENTIFICADOR} { insertar_principio(listaIdentificadores, yytext);} 
+{IDENTIFICADOR} { enlistar_identificador(yytext);} 
 
 %%
 
@@ -38,7 +55,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-     FILE *archivo = fopen(argv[1], "r");
+    FILE *archivo = fopen(argv[1], "r");
     yyin = archivo;
        
     listaIdentificadores = (Lista *)malloc(sizeof(Lista));
@@ -50,31 +67,55 @@ int main(int argc, char *argv[]) {
     yylex();
 
      // Imprimir la lista
-    NodoIdentificador *actual = listaIdentificadores->cabeza; 
+    NodoIdentificador *actual = listaIdentificadores->cabeza;
+    printf("\t *Listado de identificadores encontrados:\n");
     while (actual != NULL)
-    {
-        printf("Valor: %s\n", actual->valor); 
+    {   
+        printf("\t %s: aparece %d veces\n",actual->valor, actual->repeticiones); 
         actual = actual->siguiente;
     }
     fclose(archivo);
     return 0;
 }
 
-void insertar_principio(Lista *lista, char*valor)
-{
-    NodoIdentificador *nodoNuevo = (NodoIdentificador *)malloc(sizeof(NodoIdentificador));
-    nodoNuevo->valor = strdup(valor);;
 
+void insertar_final(Lista *lista, NodoIdentificador *nodoNuevo)
+{
     if (lista->tamanio == 0)
     {
         lista->cabeza = nodoNuevo;
-        nodoNuevo->siguiente = NULL;
+        
     }
     else
     { // Ya hay más de un nodo
-        nodoNuevo->siguiente = lista->cabeza;
-        lista->cabeza = nodoNuevo;
+       NodoIdentificador *nodoAux;
+       nodoAux = lista->cabeza;
+       while(nodoAux->siguiente != NULL){
+         nodoAux = nodoAux->siguiente;
+       }
+
+       nodoAux->siguiente = nodoNuevo;
+       
     }
     lista->tamanio = lista->tamanio + 1;
     
 }
+
+
+NodoIdentificador *buscar_nodo(Lista *lista, char* valorBuscado)
+{
+    NodoIdentificador *buscador = lista->cabeza;
+
+    while (buscador != NULL)
+    {
+        if (strcmp(buscador->valor, valorBuscado) == 0)
+        {
+            break; // termina el bucle con buscador apuntando al nodo buscado
+        }
+        else
+        {
+            buscador = buscador->siguiente; //Hasta null en la cola
+        }
+    }
+    return buscador; //apunta al nodo buscado, o apunta a null
+};
