@@ -3,32 +3,23 @@
 #include <stdlib.h>
 #include <string.h>  // Necesario para strdup y strcmp
 
-struct NodoIdentificador {
-    char *info;
+// Nodo
+typedef struct NodoIdentificador
+{
+    char* valor;
     struct NodoIdentificador *siguiente;
-};
+} NodoIdentificador;
 
-struct NodoIdentificador *listaIdentificadores = NULL;
+// Lista
+typedef struct Lista
+{
+    int tamanio;
+    NodoIdentificador *cabeza; // Primer elemento
+} Lista;
 
-void insertarOrdenado(struct NodoIdentificador **lista, char *infoNodo) {
-    struct NodoIdentificador *nuevoNodo = malloc(sizeof(struct NodoIdentificador));
-    nuevoNodo->info = strdup(infoNodo);
-    nuevoNodo->siguiente = NULL;
+void insertar_principio(Lista *lista, char* valor);
 
-    printf("Insertando: %s\n", infoNodo);
-
-    if (*lista == NULL) {
-        *lista = nuevoNodo;
-        printf("Lista vacia, nodo %s insertado como primer nodo\n", infoNodo);
-    } else {
-        struct NodoIdentificador *paux = *lista;
-        while (paux->siguiente != NULL) {
-            paux = paux->siguiente;
-        }
-        printf("Insertado %s despues de %s\n", infoNodo, paux->info);
-        paux->siguiente = nuevoNodo;
-    }
-}
+Lista *listaIdentificadores;
 %}
 
 %option noyywrap
@@ -37,23 +28,49 @@ IDENTIFICADOR [_a-zA-Z][_a-zA-Z0-9]*
 
 %%
 
-{IDENTIFICADOR} {  
-    insertarOrdenado(&listaIdentificadores, yytext); 
-} 
+{IDENTIFICADOR} { insertar_principio(listaIdentificadores, yytext);} 
 
 %%
 
 int main() {
-    yylex();
 
-    struct NodoIdentificador *paux;
-    while (listaIdentificadores != NULL) {
-        paux = listaIdentificadores; // Guardar el puntero al nodo actual
-        printf("Nodo: %s\n", paux->info); // Imprimir el nodo
-        listaIdentificadores = listaIdentificadores->siguiente; // Mover al siguiente nodo
-        free(paux->info); // Liberar la memoria de la cadena
-        free(paux); // Liberar la memoria del nodo
+    listaIdentificadores = (Lista *)malloc(sizeof(Lista));
+    listaIdentificadores->tamanio=0;
+    listaIdentificadores->cabeza=NULL;
+
+    
+
+    /*yylex();*/
+   insertar_principio(listaIdentificadores, "Hola");
+    insertar_principio(listaIdentificadores, "Chau");
+    insertar_principio(listaIdentificadores, "Casa");
+    
+     // Imprimir la lista
+    NodoIdentificador *actual = listaIdentificadores->cabeza; 
+    while (actual != NULL)
+    {
+        printf("Valor: %s\n", actual->valor); 
+        actual = actual->siguiente;
     }
 
     return 0;
+}
+
+void insertar_principio(Lista *lista, char*valor)
+{
+    NodoIdentificador *nodoNuevo = (NodoIdentificador *)malloc(sizeof(NodoIdentificador));
+    nodoNuevo->valor = strdup(valor);;
+
+    if (lista->tamanio == 0)
+    {
+        lista->cabeza = nodoNuevo;
+        nodoNuevo->siguiente = NULL;
+    }
+    else
+    { // Ya hay más de un nodo
+        nodoNuevo->siguiente = lista->cabeza;
+        lista->cabeza = nodoNuevo;
+    }
+    lista->tamanio = lista->tamanio + 1;
+    
 }
